@@ -1,5 +1,7 @@
 # opencode-gwdg-quota
 
+> **Just vibe — an API quota checker for OpenCode. Should work. It does.**
+
 Shows your remaining [GWDG SAIA](https://docs.hpc.gwdg.de/services/ai-services/saia/index.html) (Academic Cloud Chat AI) request quota inside [OpenCode](https://opencode.ai) — in the terminal TUI status bar and as a pill in OpenCode Desktop.
 
 GWDG SAIA charges per request (10 per 10s, 400 per hour, 800 per day by default). This plugin reads the `x-ratelimit-*` headers that GWDG sends on **every** response, so tracking your remaining quota costs **zero extra requests**. The numbers update automatically after each API call.
