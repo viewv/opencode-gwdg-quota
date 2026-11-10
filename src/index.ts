@@ -96,7 +96,11 @@ export default Plugin.define({
       state = next
       await ctx.storage.set("quota", next as never)
       await writeStateFile(next)
-      await registration?.events?.emit("updated", { ...next, providerConfigured: await isProviderConfigured() })
+      await registration?.events?.emit("updated", {
+        ...next,
+        providerID,
+        providerConfigured: await isProviderConfigured(),
+      })
     }
 
     // Best of both worlds: this location's live state, or the shared file
@@ -105,7 +109,7 @@ export default Plugin.define({
       const fromFile = await readStateFile()
       if ((fromFile?.updatedAt ?? 0) > (state?.updatedAt ?? 0) && fromFile) state = fromFile
       const best = state ?? emptyState()
-      return { ...best, providerConfigured: await isProviderConfigured() }
+      return { ...best, providerID, providerConfigured: await isProviderConfigured() }
     }
 
     // Track quota from real traffic: every response from the provider.

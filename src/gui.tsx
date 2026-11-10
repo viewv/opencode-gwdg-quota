@@ -130,6 +130,41 @@ export default Plugin.define({
     // a cheap local call that survives server restarts and location changes.
     const timer = setInterval(() => void load(), 30 * 1000)
 
+    // Track which provider each session's selected model belongs to, so the
+    // pill can hide when the routed session uses a different provider.
+    const [sessionProviders, setSessionProviders] = createSignal<Record<string, string>>({})
+    const eventController = new AbortController()
+    void (async () => {
+      try {
+        const stream = ctx.client.event.subscribe({
+          types: ["session.model.selected"],
+          signal: eventController.signal,
+        })
+        for await (const event of stream) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const data = (event as any)?.data
+          if (data?.sessionID && data?.model?.providerID) {
+            setSessionProviders((prev) => ({ ...prev, [data.sessionID]: data.model.providerID }))
+          }
+        }
+      } catch {
+        // Stream ended or aborted; show() falls back to session lookups.
+      }
+    })()
+
+    const loadSessionModel = async (sessionID: string) => {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const info: any = await ctx.client.session.get({ sessionID })
+        const model = info?.data?.model ?? info?.model
+        if (model?.providerID) {
+          setSessionProviders((prev) => ({ ...prev, [sessionID]: model.providerID }))
+        }
+      } catch {
+        // Unknown model: keep showing the pill (fail open).
+      }
+    }
+
     const refresh = async () => {
       if (refreshing()) return
       setRefreshing(true)
@@ -149,6 +184,18 @@ export default Plugin.define({
         const state = quota()
         // Hide the pill entirely when the GWDG provider is not configured.
         if (state.providerConfigured === false) return undefined
+        // Hide when the routed session's model belongs to another provider.
+        const session = ctx.sessions.current()
+        const sessionProvider = session ? sessionProviders()[session.id] : undefined
+        if (session && sessionProvider === undefined) void loadSessionModel(session.id)
+        if (
+          session &&
+          sessionProvider !== undefined &&
+          state.providerID !== undefined &&
+          sessionProvider !== state.providerID
+        ) {
+          return undefined
+        }
         const ten = state.windows["10s"]
         const hour = state.windows.hour
         const day = state.windows.day
@@ -195,13 +242,23 @@ export default Plugin.define({
       keywords: "quota gwdg api",
       group: "GWDG",
       slash: { name: "quota", arguments: true },
-      enabled: quota().providerConfigured !== false,
+      enabled: () => {
+        const state = quota()
+        if (state.providerConfigured === false) return false
+        const session = ctx.sessions.current()
+        const sessionProvider = session ? sessionProviders()[session.id] : undefined
+        if (session && sessionProvider !== undefined && state.providerID !== undefined && sessionProvider !== state.providerID) {
+          return false
+        }
+        return true
+      },
       run: () => void refresh(),
     }))
 
     return () => {
       stopEvents?.()
       clearInterval(timer)
+      eventController.abort()
     }
   },
 })

@@ -17,6 +17,7 @@ const quotaSchema = {
   properties: {
     updatedAt: { type: "number", description: "Epoch ms of the last header observation" },
     providerConfigured: { type: "boolean", description: "Whether the target provider exists in the user's config" },
+    providerID: { type: "string", description: "The provider ID this plugin tracks" },
     windows: {
       type: "object",
       properties: {
@@ -27,7 +28,7 @@ const quotaSchema = {
       additionalProperties: false,
     },
   },
-  required: ["updatedAt", "windows", "providerConfigured"],
+  required: ["updatedAt", "windows", "providerConfigured", "providerID"],
   additionalProperties: false,
 }
 
@@ -35,6 +36,7 @@ export type QuotaWindow = { limit: number; remaining: number; resetAt: number }
 export type QuotaState = {
   updatedAt: number
   providerConfigured?: boolean
+  providerID?: string
   windows: { "10s"?: QuotaWindow; hour?: QuotaWindow; day?: QuotaWindow }
 }
 

@@ -90,6 +90,9 @@ export default Plugin.define({
       const state = quota()
       // Hide the status bar entirely when the GWDG provider is not configured.
       if (state.providerConfigured === false) return null
+      // Hide when the currently selected model belongs to another provider.
+      const model = context.ui.model.current()
+      if (model && state.providerID !== undefined && model.providerID !== state.providerID) return null
       const hour = state.windows.hour
       const day = state.windows.day
       if (!hour && !day) {
@@ -169,7 +172,13 @@ export default Plugin.define({
           palette: true,
           slash: { name: "quota", arguments: true },
           suggested: true,
-          enabled: () => quota().providerConfigured !== false,
+          enabled: () => {
+            const state = quota()
+            if (state.providerConfigured === false) return false
+            const model = context.ui.model.current()
+            if (model && state.providerID !== undefined && model.providerID !== state.providerID) return false
+            return true
+          },
           run: (input?: string) => {
             if (input && input.trim() === "refresh") void refresh()
             else showQuotaDialog()
