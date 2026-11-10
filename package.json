@@ -1,6 +1,6 @@
 {
   "name": "opencode-gwdg-quota",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Show remaining GWDG SAIA API request quota in the OpenCode status bar (TUI) and Desktop pill",
   "type": "module",
   "license": "MIT",
@@ -38,8 +38,12 @@
     "watch": "vite build --watch"
   },
   "dependencies": {
-    "@opencode/plugin": "latest",
-    "solid-js": "^1.9.0"
+    "@opencode/plugin": "latest"
+  },
+  "peerDependencies": {
+    "@opentui/core": ">=0.6.6",
+    "@opentui/solid": ">=0.6.6",
+    "solid-js": ">=1.9.0"
   },
   "devDependencies": {
     "vite": "^7.0.0",
