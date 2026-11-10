@@ -88,6 +88,8 @@ export default Plugin.define({
 
     const StatusBar = () => {
       const state = quota()
+      // Hide the status bar entirely when the GWDG provider is not configured.
+      if (state.providerConfigured === false) return null
       const hour = state.windows.hour
       const day = state.windows.day
       if (!hour && !day) {
@@ -167,6 +169,7 @@ export default Plugin.define({
           palette: true,
           slash: { name: "quota", arguments: true },
           suggested: true,
+          enabled: () => quota().providerConfigured !== false,
           run: (input?: string) => {
             if (input && input.trim() === "refresh") void refresh()
             else showQuotaDialog()

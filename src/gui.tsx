@@ -147,6 +147,8 @@ export default Plugin.define({
       id: "quota",
       show: () => {
         const state = quota()
+        // Hide the pill entirely when the GWDG provider is not configured.
+        if (state.providerConfigured === false) return undefined
         const ten = state.windows["10s"]
         const hour = state.windows.hour
         const day = state.windows.day
@@ -193,6 +195,7 @@ export default Plugin.define({
       keywords: "quota gwdg api",
       group: "GWDG",
       slash: { name: "quota", arguments: true },
+      enabled: quota().providerConfigured !== false,
       run: () => void refresh(),
     }))
 

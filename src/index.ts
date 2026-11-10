@@ -76,11 +76,27 @@ export default Plugin.define({
       return any ? windows : undefined
     }
 
+    const emptyState = (): QuotaState => ({ updatedAt: 0, windows: {} })
+
+    // Hide the panel entirely when the target provider is not configured
+    // (e.g. someone installed the plugin without using GWDG).
+    const isProviderConfigured = async (): Promise<boolean> => {
+      try {
+        const result = (await ctx.provider.list()) as unknown
+        const list = (Array.isArray(result) ? result : ((result as { data?: unknown[] })?.data ?? [])) as Array<
+          { id?: string; provider?: { id?: string } }
+        >
+        return list.some((entry) => entry?.id === providerID || entry?.provider?.id === providerID)
+      } catch {
+        return true // Fail open: keep showing the panel on transient errors.
+      }
+    }
+
     const save = async (next: QuotaState) => {
       state = next
       await ctx.storage.set("quota", next as never)
       await writeStateFile(next)
-      await registration?.events?.emit("updated", next)
+      await registration?.events?.emit("updated", { ...next, providerConfigured: await isProviderConfigured() })
     }
 
     // Best of both worlds: this location's live state, or the shared file
@@ -88,7 +104,8 @@ export default Plugin.define({
     const readBest = async (): Promise<QuotaState> => {
       const fromFile = await readStateFile()
       if ((fromFile?.updatedAt ?? 0) > (state?.updatedAt ?? 0) && fromFile) state = fromFile
-      return state ?? { updatedAt: 0, windows: {} }
+      const best = state ?? emptyState()
+      return { ...best, providerConfigured: await isProviderConfigured() }
     }
 
     // Track quota from real traffic: every response from the provider.
