@@ -1,0 +1,48 @@
+{
+  "name": "opencode-gwdg-quota",
+  "version": "1.0.0",
+  "description": "Show remaining GWDG SAIA API request quota in the OpenCode status bar (TUI) and Desktop pill",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/viewv/opencode-gwdg-quota.git"
+  },
+  "homepage": "https://github.com/viewv/opencode-gwdg-quota#readme",
+  "bugs": {
+    "url": "https://github.com/viewv/opencode-gwdg-quota/issues"
+  },
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "gwdg",
+    "saia",
+    "academic-cloud",
+    "quota",
+    "rate-limit"
+  ],
+  "files": [
+    "src",
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./tui": "./src/tui.tsx",
+    "./rpc": "./src/rpc.ts",
+    "./gui-experimental": "./dist/gui-experimental.cjs"
+  },
+  "scripts": {
+    "build": "vite build",
+    "watch": "vite build --watch"
+  },
+  "dependencies": {
+    "@opencode/plugin": "latest"
+  },
+  "devDependencies": {
+    "solid-js": "^1.9.0",
+    "vite": "^7.0.0",
+    "vite-plugin-solid": "^2.11.0"
+  }
+}
